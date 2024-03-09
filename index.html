@@ -1,0 +1,147 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ece5e5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #075e54;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+        }
+
+        #message {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 25px;
+            margin-right: 10px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #sendBtn {
+            background-color: #188942;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #messages {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #messages p {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #e2ffc7;
+            word-wrap: break-word;
+        }
+
+        .sent-by-user {
+            color: #075e54;
+            font-weight: bold;
+        }
+
+        @media screen and (max-width: 600px) {
+            #message {
+                width: calc(100% - 60px);
+            }
+
+            #sendBtn {
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Chatting App</h1>
+    <div class="input-container">
+        <input type="text" id="message" placeholder="Enter the Message" />
+        <button id="sendBtn">Send</button>
+    </div>
+    <div id="messages"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const sendBtn = document.getElementById('sendBtn');
+        const messageInput = document.getElementById('message');
+        const allMessages = document.getElementById('messages');
+        const messageHistory = [];
+
+        socket.on("message", (message) => {
+            displayMessage(message, false); 
+        });
+
+        sendBtn.addEventListener("click", e => {
+            sendMessage();
+        });
+
+        messageInput.addEventListener("keypress", e => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+    const message = messageInput.value;
+    socket.emit("user-message", message);
+    messageHistory.push(message);
+    displayMessage("You: " + message, true); 
+    messageInput.value = ''; 
+}
+
+function displayMessage(message, sentByUser) {
+
+    if (!messageHistory.includes(message)) {
+    
+        if (!sentByUser) {
+        
+            const p = document.createElement('p');
+            p.innerText = "They: " + message;
+            allMessages.appendChild(p);
+        } else {
+            
+            const lastMessage = allMessages.lastElementChild;
+            
+            if (lastMessage && lastMessage.classList.contains('sent-by-user')) {
+                
+                lastMessage.innerText += "\n" + message;
+            } else {
+            
+                const p = document.createElement('p');
+                p.innerText = message;
+                p.classList.add('sent-by-user');
+                allMessages.appendChild(p);
+            }
+        }
+    }
+}
+
+    </script>
+</body>
+</html>
